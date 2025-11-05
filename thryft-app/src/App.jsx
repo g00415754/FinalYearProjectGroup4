@@ -10,9 +10,9 @@ import Closet from './components/Closet';
 import AccountWrapper from './components/Account/AccountWrapper';
 
 function App() {
-  return (
-    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
-      <AuthProvider>
+    return (
+      <GoogleOAuthProvider clientId="266562936456-bfessc9bropo6r396rqkmuokp8g4f0lv.apps.googleusercontent.com">
+        <AuthProvider>
           <NavigationBar />
           <Routes>
             <Route path="/" element={<Home />} />
@@ -20,9 +20,9 @@ function App() {
             <Route path="/closet" element={<Closet />} />
             <Route path="/account" element={<AccountWrapper />} />
           </Routes>
-      </AuthProvider>
-    </GoogleOAuthProvider>
-  );
-}
+        </AuthProvider>
+      </GoogleOAuthProvider>
+    );
+  }
 
 export default App;

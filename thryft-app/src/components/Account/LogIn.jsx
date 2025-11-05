@@ -8,7 +8,7 @@ export default function Login() {
   const { login } = useContext(AuthContext);
 
   const handleLoginSuccess = (credentialResponse) => {
-    const user = jwt_decode.default(credentialResponse.credential);
+    const user = jwt_decode(credentialResponse.credential);
     login(user);
   };
 
