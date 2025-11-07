@@ -2,11 +2,14 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
 
 import NavigationBar from './components/NavigationBar';
 import Home from './components/Home';
 import Shop from './components/Shop';
-import Closet from './components/Closet';
+import Closet from './components/Closet/Closet';
 import AccountWrapper from './components/Account/AccountWrapper';
 
 function App() {
