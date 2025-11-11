@@ -16,12 +16,9 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 110px;
+  height: 100px;
   background: #212529;
   z-index: -1;
-  clip-path: path(
-    "M0,30 Q25%,0 50%,30 Q75%,60 100%,30 L100%,100 L0,100 Z"
-  );
 }
 
 /* Raise nav links upward slightly */
@@ -84,7 +81,7 @@
 }
 
 
-/* Optional: Add a soft shadow under the curve for depth */
+/* a soft shadow under the curve for depth */
 .navbar::after {
   content: "";
   position: absolute;

@@ -1,20 +1,77 @@
+
 .splash-screen {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #fff; /* or your brand color */
-    animation: fadeIn 1.2s ease-in;
-  }
-  
-  .splash-logo {
-    width: 180px;
-    opacity: 0;
-    animation: logoFade 2s ease forwards;
-  }
-  
-  @keyframes logoFade {
-    from { opacity: 0; transform: scale(0.8); }
-    to { opacity: 1; transform: scale(1); }
-  }
-  
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 100vh;
+  background: linear-gradient(180deg, #F5F5DC 0%, #FFFFFF 100%);
+  overflow: hidden;
+  transition: opacity 0.8s ease;
+  position: relative;
+}
+
+.fade-out {
+  opacity: 0;
+}
+
+/* Add soft ambient glow behind logo */
+.splash-screen::before {
+  content: "";
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: softPulse 6s ease-in-out infinite alternate;
+  z-index: 0;
+}
+
+/* Center content properly */
+.splash-content {
+  position: relative;
+  text-align: center;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-10px); /* slight offset for visual balance */
+}
+
+/* Logo */
+.splash-logo {
+  width: 170px;
+  max-width: 60vw;
+  opacity: 0;
+  animation: riseIn 1.4s ease forwards;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.15));
+}
+
+/* Tagline */
+.splash-tagline {
+  margin-top: 1.2rem;
+  font-family: 'Poppins', sans-serif;
+  color: #444;
+  font-size: 1.05rem;
+  letter-spacing: 1px;
+  opacity: 0;
+  animation: fadeUp 1.6s ease 0.4s forwards;
+  text-shadow: 0 1px 3px rgba(46, 125, 50, 0.25);
+}
+
+/* Animations */
+@keyframes riseIn {
+  0% { opacity: 0; transform: translateY(30px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes softPulse {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.2); opacity: 0.5; }
+}
