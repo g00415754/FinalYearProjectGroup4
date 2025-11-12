@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { Card, Button, Modal, Form } from "react-bootstrap";
 import "../../styles/Closet.css";
 import { db, storage } from "../../firebase";
-import { collection, addDoc, getDocs } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 
 export default function Closet() {
   const [showModal, setShowModal] = useState(false);
@@ -15,15 +15,18 @@ export default function Closet() {
     { title: "Accessories", items: [] },
   ]);
 
-  // Fetch items from Firestore on mount
+  // ✅ Fetch items from Firestore on mount
   useEffect(() => {
     const fetchItems = async () => {
       const snapshot = await getDocs(collection(db, "closetItems"));
-      const items = snapshot.docs.map(doc => doc.data());
+      const items = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }));
 
-      const grouped = ["Tops", "Bottoms", "Shoes", "Accessories"].map(cat => ({
+      const grouped = ["Tops", "Bottoms", "Shoes", "Accessories"].map((cat) => ({
         title: cat,
-        items: items.filter(item => item.item_category === cat)
+        items: items.filter((item) => item.item_category === cat),
       }));
 
       setCategories(grouped);
@@ -32,6 +35,7 @@ export default function Closet() {
     fetchItems();
   }, []);
 
+  // ✅ Add new item
   const handleAddItem = async (e) => {
     e.preventDefault();
     try {
@@ -50,7 +54,7 @@ export default function Closet() {
         item_category: newItem.category,
         image_url: imageUrl || "",
         item_type: "",
-        item_colour: ""
+        item_colour: "",
       });
 
       // Reset modal and form
@@ -59,19 +63,51 @@ export default function Closet() {
 
       // Refresh items
       const snapshot = await getDocs(collection(db, "closetItems"));
-      const items = snapshot.docs.map(doc => doc.data());
-      const grouped = ["Tops", "Bottoms", "Shoes", "Accessories"].map(cat => ({
+      const items = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }));
+      const grouped = ["Tops", "Bottoms", "Shoes", "Accessories"].map((cat) => ({
         title: cat,
-        items: items.filter(item => item.item_category === cat)
+        items: items.filter((item) => item.item_category === cat),
       }));
       setCategories(grouped);
-
     } catch (error) {
       console.error("Error adding item:", error);
     }
   };
 
-  // Draggable scroll helper
+  // ✅ Delete item (Firestore + Storage)
+  const handleDeleteItem = async (itemId, imageUrl) => {
+    if (!window.confirm("Are you sure you want to delete this item?")) return;
+
+    try {
+      // Delete Firestore document
+      await deleteDoc(doc(db, "closetItems", itemId));
+
+      // Delete image from Storage (if exists)
+      if (imageUrl) {
+        const imageRef = ref(storage, imageUrl);
+        await deleteObject(imageRef);
+      }
+
+      // Refresh items
+      const snapshot = await getDocs(collection(db, "closetItems"));
+      const items = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }));
+      const grouped = ["Tops", "Bottoms", "Shoes", "Accessories"].map((cat) => ({
+        title: cat,
+        items: items.filter((item) => item.item_category === cat),
+      }));
+      setCategories(grouped);
+    } catch (error) {
+      console.error("Error deleting item:", error);
+    }
+  };
+
+  // ✅ Draggable scroll helper
   const useDraggableScroll = (ref) => {
     let isDown = false;
     let startX, scrollLeft;
@@ -82,8 +118,14 @@ export default function Closet() {
       startX = e.pageX - ref.current.offsetLeft;
       scrollLeft = ref.current.scrollLeft;
     };
-    const handleMouseLeave = () => { isDown = false; ref.current.classList.remove("active"); };
-    const handleMouseUp = () => { isDown = false; ref.current.classList.remove("active"); };
+    const handleMouseLeave = () => {
+      isDown = false;
+      ref.current.classList.remove("active");
+    };
+    const handleMouseUp = () => {
+      isDown = false;
+      ref.current.classList.remove("active");
+    };
     const handleMouseMove = (e) => {
       if (!isDown) return;
       e.preventDefault();
@@ -119,9 +161,19 @@ export default function Closet() {
               >
                 {category.items.map((item, idx) => (
                   <Card key={idx} className="closet-card">
-                    <Card.Img variant="top" src={item.image_url || "https://via.placeholder.com/200"} />
+                    <Card.Img
+                      variant="top"
+                      src={item.image_url || "https://via.placeholder.com/200"}
+                    />
                     <Card.Body>
                       <Card.Title>{item.item_name}</Card.Title>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDeleteItem(item.id, item.image_url)}
+                      >
+                        Delete
+                      </Button>
                     </Card.Body>
                   </Card>
                 ))}
@@ -179,8 +231,12 @@ export default function Closet() {
               </Form.Group>
 
               <div className="d-flex justify-content-end">
-                <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-                <Button type="submit" variant="dark" className="ms-2">Add Item</Button>
+                <Button variant="secondary" onClick={() => setShowModal(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" variant="dark" className="ms-2">
+                  Add Item
+                </Button>
               </div>
             </Form>
           </Modal.Body>
