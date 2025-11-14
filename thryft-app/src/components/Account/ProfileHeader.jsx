@@ -1,10 +1,10 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { BsPersonCircle } from 'react-icons/bs';
 import { FaPencilAlt } from 'react-icons/fa';
-import { AuthContext } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 function ProfileHeader({ editMode, setEditMode }) {
-  const { user } = useContext(AuthContext);
+  const { currentUser } = useAuth();
 
   const handleEditClick = () => {
     setEditMode(!editMode);
@@ -13,9 +13,11 @@ function ProfileHeader({ editMode, setEditMode }) {
   return (
     <div className="profile-header d-flex align-items-center justify-content-between mb-4 p-3">
       <div className="d-flex align-items-center">
-        {user?.picture ? (
+
+        {/* Profile Photo */}
+        {currentUser?.photoURL ? (
           <img
-            src={user.picture}
+            src={currentUser.photoURL}
             alt="Profile"
             className="rounded-circle me-3"
             style={{ width: 64, height: 64, objectFit: 'cover' }}
@@ -24,13 +26,18 @@ function ProfileHeader({ editMode, setEditMode }) {
           <BsPersonCircle size={64} className="me-3 text-secondary" />
         )}
 
+        {/* Name + Email */}
         <div>
-          <h5 className="mb-1">{user?.name || 'Your Name'}</h5>
-          <p className="text-muted small mb-0">{user?.email || 'email@example.com'}</p>
+          <h5 className="mb-1">
+            {currentUser?.displayName || "Your Name"}
+          </h5>
+          <p className="text-muted small mb-0">
+            {currentUser?.email || "email@example.com"}
+          </p>
         </div>
       </div>
 
-      {/* Pencil Icon */}
+      {/* Edit Icon */}
       <div
         className={`edit-icon-circle ${editMode ? 'rotate-pencil' : ''}`}
         onClick={handleEditClick}

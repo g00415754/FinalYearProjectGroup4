@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +11,7 @@ import {
 import "../../styles/Account.css";
 
 export default function LogIn() {
-  const { login, register } = useAuth();
+  const { login, register, currentUser } = useAuth();
   const navigate = useNavigate();
 
   const [isSignUp, setIsSignUp] = useState(false);
@@ -20,6 +20,13 @@ export default function LogIn() {
     password: "",
     confirmPassword: "",
   });
+
+  // 🔥 Redirect user AWAY from /login if already logged in
+  useEffect(() => {
+    if (currentUser) {
+      navigate("/");
+    }
+  }, [currentUser, navigate]);
 
   // ===========================
   // 🌟 1. HANDLE GOOGLE LOGIN
@@ -34,6 +41,7 @@ export default function LogIn() {
 
       console.log("Google Auth User:", result.user);
 
+      // 🔥 Redirect to home after Google login
       navigate("/");
     } catch (err) {
       console.error("Google login error:", err);
@@ -48,7 +56,7 @@ export default function LogIn() {
   };
 
   // ===========================
-  // 🌟 3. SUBMIT FORM
+  // 🌟 3. SUBMIT FORM (Email/Password)
   // ===========================
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,15 +70,14 @@ export default function LogIn() {
 
         // Firebase Signup
         await register(formData.email, formData.password);
-
         console.log("Signed up with:", formData.email);
       } else {
         // Firebase Login
         await login(formData.email, formData.password);
-
         console.log("Logged in with:", formData.email);
       }
 
+      // 🔥 Redirect after login/signup
       navigate("/");
     } catch (err) {
       console.error(err);
@@ -133,10 +140,13 @@ export default function LogIn() {
         <div className="divider my-3">or</div>
 
         {/* GOOGLE LOGIN BUTTON */}
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={() => console.log("Google Login Failed")}
-        />
+        <div className="google-login-wrapper">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => console.log("Google Login Failed")}
+          />
+        </div>
+
 
         {/* Toggle between modes */}
         <p className="mt-4">

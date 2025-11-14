@@ -10,39 +10,30 @@ import {
 export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   // Track Firebase user (Google + email/password)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser || null);
+      setCurrentUser(firebaseUser || null);
     });
 
     return () => unsubscribe();
   }, []);
 
-  // Email/Password Login
-  const login = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
-  };
+  const login = (email, password) =>
+    signInWithEmailAndPassword(auth, email, password);
 
-  // Email/Password Signup
-  const register = (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password);
-  };
+  const register = (email, password) =>
+    createUserWithEmailAndPassword(auth, email, password);
 
-  // Google login is handled outside & calls login(user) indirectly,
-  // so no need for a special function here.
-
-  // Logout
   const logout = () => signOut(auth);
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ currentUser, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-// Custom hook for convenience
 export const useAuth = () => useContext(AuthContext);

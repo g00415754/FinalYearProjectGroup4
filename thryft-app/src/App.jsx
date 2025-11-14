@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { FirebaseProvider } from './context/FirebaseContext.jsx';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -14,122 +14,113 @@ import AccountWrapper from './components/Account/AccountWrapper';
 import LogIn from './components/Account/LogIn';
 import SplashScreen from './components/SplashScreen';
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+function AppRoutes() {
+  const { currentUser } = useAuth();
   const [showSplash, setShowSplash] = useState(true);
 
-  // Splash screen delay
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 2500);
     return () => clearTimeout(timer);
   }, []);
 
-  // Load previous user (deprecated once Firebase auth replaces it)
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) setIsAuthenticated(true);
-  }, []);
+  if (showSplash) return <SplashScreen />;
 
+  return (
+    <Routes>
+
+      {/* Login Route */}
+      <Route
+        path="/login"
+        element={
+          currentUser ? <Navigate to="/" /> : <LogIn />
+        }
+      />
+
+      {/* Home */}
+      <Route
+        path="/"
+        element={
+          currentUser ? (
+            <>
+              <Home />
+              <NavigationBar />
+            </>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+
+      {/* Shop */}
+      <Route
+        path="/shop"
+        element={
+          currentUser ? (
+            <>
+              <Shop />
+              <NavigationBar />
+            </>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+
+      {/* Game */}
+      <Route
+        path="/game"
+        element={
+          currentUser ? (
+            <>
+              <Game />
+              <NavigationBar />
+            </>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+
+      {/* Closet */}
+      <Route
+        path="/closet"
+        element={
+          currentUser ? (
+            <>
+              <Closet />
+              <NavigationBar />
+            </>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+
+      {/* Account */}
+      <Route
+        path="/account"
+        element={
+          currentUser ? (
+            <>
+              <AccountWrapper />
+              <NavigationBar />
+            </>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+
+    </Routes>
+  );
+}
+
+export default function App() {
   return (
     <FirebaseProvider>
       <AuthProvider>
-        {showSplash ? (
-          <SplashScreen />
-        ) : (
-          <Routes>
-
-            {/* Login Route */}
-            <Route
-              path="/login"
-              element={
-                isAuthenticated ? (
-                  <Navigate to="/" />
-                ) : (
-                  <LogIn setIsAuthenticated={setIsAuthenticated} />
-                )
-              }
-            />
-
-            {/* Home */}
-            <Route
-              path="/"
-              element={
-                isAuthenticated ? (
-                  <>
-                    <Home />
-                    <NavigationBar />
-                  </>
-                ) : (
-                  <Navigate to="/login" />
-                )
-              }
-            />
-
-            {/* Shop */}
-            <Route
-              path="/shop"
-              element={
-                isAuthenticated ? (
-                  <>
-                    <Shop />
-                    <NavigationBar />
-                  </>
-                ) : (
-                  <Navigate to="/login" />
-                )
-              }
-            />
-
-            {/* Game */}
-            <Route
-              path="/game"
-              element={
-                isAuthenticated ? (
-                  <>
-                    <Game />
-                    <NavigationBar />
-                  </>
-                ) : (
-                  <Navigate to="/login" />
-                )
-              }
-            />
-
-            {/* Closet */}
-            <Route
-              path="/closet"
-              element={
-                isAuthenticated ? (
-                  <>
-                    <Closet />
-                    <NavigationBar />
-                  </>
-                ) : (
-                  <Navigate to="/login" />
-                )
-              }
-            />
-
-            {/* Account */}
-            <Route
-              path="/account"
-              element={
-                isAuthenticated ? (
-                  <>
-                    <AccountWrapper />
-                    <NavigationBar />
-                  </>
-                ) : (
-                  <Navigate to="/login" />
-                )
-              }
-            />
-
-          </Routes>
-        )}
+        <AppRoutes />
       </AuthProvider>
     </FirebaseProvider>
   );
 }
-
-export default App;

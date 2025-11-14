@@ -1,10 +1,10 @@
-import React, { useContext } from 'react';
-import { AuthContext } from '../../context/AuthContext';
+import React from 'react';
+import { useAuth } from '../../context/AuthContext';
 import Account from './Account';
-import Login from './LogIn';
+import LogIn from './LogIn';
 
 export default function AccountWrapper() {
-  const { user } = useContext(AuthContext);
+  const { currentUser } = useAuth();
 
-  return user ? <Account /> : <Login />;
+  return currentUser ? <Account /> : <LogIn />;
 }
