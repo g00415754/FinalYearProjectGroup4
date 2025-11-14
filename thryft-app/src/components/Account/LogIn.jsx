@@ -1,95 +1,92 @@
-import React, { useState, useContext } from 'react';
-import { GoogleLogin } from '@react-oauth/google';
-import { AuthContext } from '../../context/AuthContext';
-import { jwtDecode } from "jwt-decode";
-import { useNavigate } from 'react-router-dom';
-import '../../styles/Account.css';
+import React, { useState } from "react";
+import { GoogleLogin } from "@react-oauth/google";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../../firebase";
+import {
+  GoogleAuthProvider,
+  signInWithCredential,
+} from "firebase/auth";
 
-export default function LogIn({ setIsAuthenticated }) {
-  const { login } = useContext(AuthContext);
+import "../../styles/Account.css";
+
+export default function LogIn() {
+  const { login, register } = useAuth();
   const navigate = useNavigate();
 
   const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
-  // ✅ Handle Google login success
-  const handleLoginSuccess = (credentialResponse) => {
+  // ===========================
+  // 🌟 1. HANDLE GOOGLE LOGIN
+  // ===========================
+  const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const user = jwtDecode(credentialResponse.credential);
-
-      // Save user in AuthContext and localStorage
-      login(user);
-      localStorage.setItem(
-        'user',
-        JSON.stringify({
-          name: user.name,
-          email: user.email,
-          picture: user.picture,
-        })
+      const cred = GoogleAuthProvider.credential(
+        credentialResponse.credential
       );
 
-      console.log('Google user:', user);
+      const result = await signInWithCredential(auth, cred);
 
-      // Update state + redirect to home
-      setIsAuthenticated(true);
-      setTimeout(() => navigate('/'), 100);
-    } catch (error) {
-      console.error('Error decoding Google credential:', error);
+      console.log("Google Auth User:", result.user);
+
+      navigate("/");
+    } catch (err) {
+      console.error("Google login error:", err);
     }
   };
 
-  // ✅ Handle form input
+  // ===========================
+  // 🌟 2. HANDLE INPUT CHANGE
+  // ===========================
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // ✅ Handle email/password form submission
-  const handleSubmit = (e) => {
+  // ===========================
+  // 🌟 3. SUBMIT FORM
+  // ===========================
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (isSignUp) {
-      if (formData.password !== formData.confirmPassword) {
-        alert('Passwords do not match');
-        return;
+    try {
+      if (isSignUp) {
+        if (formData.password !== formData.confirmPassword) {
+          alert("Passwords do not match");
+          return;
+        }
+
+        // Firebase Signup
+        await register(formData.email, formData.password);
+
+        console.log("Signed up with:", formData.email);
+      } else {
+        // Firebase Login
+        await login(formData.email, formData.password);
+
+        console.log("Logged in with:", formData.email);
       }
 
-      const newUser = {
-        name: formData.email,
-        email: formData.email,
-        picture: null,
-      };
-
-      login(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
-      setIsAuthenticated(true);
-      navigate('/');
-      console.log('Signed up with:', formData);
-    } else {
-      const existingUser = {
-        name: formData.email,
-        email: formData.email,
-        picture: null,
-      };
-
-      login(existingUser);
-      localStorage.setItem('user', JSON.stringify(existingUser));
-      setIsAuthenticated(true);
-      navigate('/');
-      console.log('Logged in with:', formData);
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
     }
   };
 
   return (
     <div className="login-page d-flex flex-column align-items-center justify-content-center vh-100">
       <div className="account-box p-4 shadow rounded text-center">
-        <h2 className="mb-4">{isSignUp ? 'Create an Account' : 'Sign in to Thryft'}</h2>
+        <h2 className="mb-4">
+          {isSignUp ? "Create an Account" : "Sign in to Thryft"}
+        </h2>
 
         {/* Email / Password Form */}
-        <form onSubmit={handleSubmit} className="w-100" style={{ maxWidth: '320px' }}>
+        <form onSubmit={handleSubmit} className="w-100" style={{ maxWidth: "320px" }}>
           <div className="form-group mb-3 text-start">
             <label>Email</label>
             <input
@@ -129,30 +126,30 @@ export default function LogIn({ setIsAuthenticated }) {
           )}
 
           <button type="submit" className="btn btn-primary w-100 mb-3">
-            {isSignUp ? 'Sign Up' : 'Log In'}
+            {isSignUp ? "Sign Up" : "Log In"}
           </button>
         </form>
 
         <div className="divider my-3">or</div>
 
-        {/* Google Login */}
+        {/* GOOGLE LOGIN BUTTON */}
         <GoogleLogin
-          onSuccess={handleLoginSuccess}
-          onError={() => console.log('Google Login Failed')}
+          onSuccess={handleGoogleSuccess}
+          onError={() => console.log("Google Login Failed")}
         />
 
-        {/* Toggle between Login and Sign Up */}
+        {/* Toggle between modes */}
         <p className="mt-4">
           {isSignUp ? (
             <>
-              Already have an account?{' '}
+              Already have an account?{" "}
               <button className="btn btn-link p-0" onClick={() => setIsSignUp(false)}>
                 Log In
               </button>
             </>
           ) : (
             <>
-              Don’t have an account?{' '}
+              Don’t have an account?{" "}
               <button className="btn btn-link p-0" onClick={() => setIsSignUp(true)}>
                 Sign Up
               </button>

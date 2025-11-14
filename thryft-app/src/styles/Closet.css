@@ -1,6 +1,10 @@
 .closet-page {
-    padding-bottom: 120px; /* extra space above navbar */
-  }
+  height: 100%;
+  min-height: 100vh;
+  overflow-y: auto;
+  padding-bottom: 2rem;
+}
+
   
 
   /* Top header bar */

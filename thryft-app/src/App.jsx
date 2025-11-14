@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
 import { FirebaseProvider } from './context/FirebaseContext.jsx';
 import "slick-carousel/slick/slick.css";
@@ -19,107 +18,117 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
 
+  // Splash screen delay
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 2500);
     return () => clearTimeout(timer);
   }, []);
 
+  // Load previous user (deprecated once Firebase auth replaces it)
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) setIsAuthenticated(true);
   }, []);
 
   return (
-    <GoogleOAuthProvider clientId="266562936456-bfessc9bropo6r396rqkmuokp8g4f0lv.apps.googleusercontent.com">
-      <FirebaseProvider>
-        <AuthProvider>
-          {showSplash ? (
-            <SplashScreen />
-          ) : (
-            <Routes>
-              {/* Auth Route */}
-              <Route
-                path="/login"
-                element={
-                  isAuthenticated ? (
-                    <Navigate to="/" />
-                  ) : (
-                    <LogIn setIsAuthenticated={setIsAuthenticated} />
-                  )
-                }
-              />
+    <FirebaseProvider>
+      <AuthProvider>
+        {showSplash ? (
+          <SplashScreen />
+        ) : (
+          <Routes>
 
-              {/* Protected Routes */}
-              <Route
-                path="/"
-                element={
-                  isAuthenticated ? (
-                    <>
-                      <Home />
-                      <NavigationBar />
-                    </>
-                  ) : (
-                    <Navigate to="/login" />
-                  )
-                }
-              />
-              <Route
-                path="/shop"
-                element={
-                  isAuthenticated ? (
-                    <>
-                      <Shop />
-                      <NavigationBar />
-                    </>
-                  ) : (
-                    <Navigate to="/login" />
-                  )
-                }
-              />
-              <Route
-                path="/game"
-                element={
-                  isAuthenticated ? (
-                    <>
-                      <Game />
-                      <NavigationBar />
-                    </>
-                  ) : (
-                    <Navigate to="/login" />
-                  )
-                }
-              />
-              <Route
-                path="/closet"
-                element={
-                  isAuthenticated ? (
-                    <>
-                      <Closet />
-                      <NavigationBar />
-                    </>
-                  ) : (
-                    <Navigate to="/login" />
-                  )
-                }
-              />
-              <Route
-                path="/account"
-                element={
-                  isAuthenticated ? (
-                    <>
-                      <AccountWrapper />
-                      <NavigationBar />
-                    </>
-                  ) : (
-                    <Navigate to="/login" />
-                  )
-                }
-              />
-            </Routes>
-          )}
-        </AuthProvider>
-      </FirebaseProvider>
-    </GoogleOAuthProvider>
+            {/* Login Route */}
+            <Route
+              path="/login"
+              element={
+                isAuthenticated ? (
+                  <Navigate to="/" />
+                ) : (
+                  <LogIn setIsAuthenticated={setIsAuthenticated} />
+                )
+              }
+            />
+
+            {/* Home */}
+            <Route
+              path="/"
+              element={
+                isAuthenticated ? (
+                  <>
+                    <Home />
+                    <NavigationBar />
+                  </>
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+
+            {/* Shop */}
+            <Route
+              path="/shop"
+              element={
+                isAuthenticated ? (
+                  <>
+                    <Shop />
+                    <NavigationBar />
+                  </>
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+
+            {/* Game */}
+            <Route
+              path="/game"
+              element={
+                isAuthenticated ? (
+                  <>
+                    <Game />
+                    <NavigationBar />
+                  </>
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+
+            {/* Closet */}
+            <Route
+              path="/closet"
+              element={
+                isAuthenticated ? (
+                  <>
+                    <Closet />
+                    <NavigationBar />
+                  </>
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+
+            {/* Account */}
+            <Route
+              path="/account"
+              element={
+                isAuthenticated ? (
+                  <>
+                    <AccountWrapper />
+                    <NavigationBar />
+                  </>
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+
+          </Routes>
+        )}
+      </AuthProvider>
+    </FirebaseProvider>
   );
 }
 

@@ -9,6 +9,7 @@
   overflow: hidden;
   transition: opacity 0.8s ease;
   position: relative;
+  overflow: hidden; /* prevents scrollbars globally during splash/login */
 }
 
 .fade-out {

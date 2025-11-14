@@ -26,5 +26,5 @@ export const storage = getStorage(app);
 if (window.location.hostname === "localhost") {
   connectFirestoreEmulator(db, "localhost", 8080);
   connectStorageEmulator(storage, "localhost", 9199);
-  connectAuthEmulator(auth, "http://localhost:9099");
+  //connectAuthEmulator(auth, "http://localhost:9099");
 }

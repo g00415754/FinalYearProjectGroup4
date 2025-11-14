@@ -1,23 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { Form } from 'react-bootstrap';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase';
 
 function AccountInfo({ editMode, user }) {
-  const [dob, setDob] = useState('');
-  const [location, setLocation] = useState('');
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [location, setLocation] = useState('');
 
-  // Load data from Google user
+  // Load Firebase profile data from Firestore
   useEffect(() => {
-    if (user) {
-      setName(user.name || '');
-      setEmail(user.email || '');
-    }
+    const loadProfile = async () => {
+      if (!user) return;
+
+      // If Firestore has profile data, load it
+      const ref = doc(db, "users", user.uid);
+      const snap = await getDoc(ref);
+
+      if (snap.exists()) {
+        const data = snap.data().profile || {};
+        setName(data.name || user.displayName || "");
+        setLocation(data.location || "");
+      } else {
+        // No profile yet → fallback values
+        setName(user.displayName || "");
+        setLocation("");
+      }
+    };
+
+    loadProfile();
   }, [user]);
 
   return (
     <div className="account-info p-3">
       <Form>
+
         <Form.Group className="mb-3">
           <Form.Label>Name</Form.Label>
           <Form.Control
@@ -32,19 +48,8 @@ function AccountInfo({ editMode, user }) {
           <Form.Label>Email</Form.Label>
           <Form.Control
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={!editMode}
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Date of Birth</Form.Label>
-          <Form.Control
-            type="date"
-            value={dob}
-            onChange={(e) => setDob(e.target.value)}
-            disabled={!editMode}
+            value={user?.email || ""}
+            disabled
           />
         </Form.Group>
 
@@ -58,6 +63,7 @@ function AccountInfo({ editMode, user }) {
             disabled={!editMode}
           />
         </Form.Group>
+
       </Form>
     </div>
   );

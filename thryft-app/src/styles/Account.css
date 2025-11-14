@@ -3,6 +3,7 @@
     padding-bottom: 70px; /* space for bottom navbar */
     background-color: #f8f9fa; /* light background */
     color: #212529;
+    overflow: hidden; /* prevents scrollbars globally during splash/login */
   }
   
   .profile-header {
