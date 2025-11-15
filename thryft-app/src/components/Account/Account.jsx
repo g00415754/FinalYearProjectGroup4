@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import ProfileHeader from "./ProfileHeader";
 import AccountInfo from "./AccountInfo";
-import { Button } from "react-bootstrap";
+import { Button, ListGroup } from "react-bootstrap";
 import "../../styles/Account.css";
 import SettingsList from "./SettingsList";
 import { useAuth } from "../../context/AuthContext";
@@ -10,9 +10,9 @@ import { doc, setDoc } from "firebase/firestore";
 
 export default function Account() {
   const [editMode, setEditMode] = useState(false);
-  const { currentUser } = useAuth();   // <-- FIXED: use correct user source
+  const { currentUser } = useAuth();
 
-  // Fields lifted up from child component
+  // This will hold the *latest* values from AccountInfo
   const [profileData, setProfileData] = useState({
     name: "",
     location: "",
@@ -25,7 +25,10 @@ export default function Account() {
 
     await setDoc(
       ref,
-      { profile: profileData },
+      {
+        name: profileData.name,
+        location: profileData.location,
+      },
       { merge: true }
     );
 
@@ -35,14 +38,13 @@ export default function Account() {
 
   return (
     <div className="account-page p-3 pb-5">
-      {/* Pass currentUser to ProfileHeader */}
+      {/* Header with name + email */}
       <ProfileHeader
         editMode={editMode}
         setEditMode={setEditMode}
-        user={currentUser}
       />
 
-      {/* Pass currentUser to AccountInfo */}
+      {/* Account info fields */}
       <AccountInfo
         editMode={editMode}
         user={currentUser}
@@ -50,13 +52,19 @@ export default function Account() {
         profileData={profileData}
       />
 
+      {/* Save button appears only in edit mode */}
       {editMode && (
-        <div className="save-btn-container">
-          <Button variant="dark" size="lg" onClick={handleSave}>
-            Save Information
-          </Button>
-        </div>
+        <ListGroup className="settings-list p-3">
+          <ListGroup.Item
+            action
+            className="save-list-item"
+            onClick={handleSave}
+          >
+            Save Changes
+          </ListGroup.Item>
+        </ListGroup>
       )}
+
 
       <SettingsList />
     </div>
