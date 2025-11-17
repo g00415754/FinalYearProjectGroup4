@@ -13,6 +13,7 @@ import Closet from './components/Closet/Closet';
 import AccountWrapper from './components/Account/AccountWrapper';
 import LogIn from './components/Account/LogIn';
 import SplashScreen from './components/SplashScreen';
+import OutfitBuilder from "./components/Closet/OutfitBuilder";
 
 function AppRoutes() {
   const { currentUser } = useAuth();
@@ -95,6 +96,10 @@ function AppRoutes() {
           )
         }
       />
+
+
+    <Route path="/outfits" element={<OutfitBuilder />} />
+
 
       {/* Account */}
       <Route
