@@ -1,16 +1,13 @@
-// -------------------------------------------------------------
-// AddItemModal.jsx — Thryft Closet v2
-// -------------------------------------------------------------
-
 import React, { useState } from "react";
 import { Modal, Form, Button } from "react-bootstrap";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { db, storage } from "../../firebase";
 
-// ⭐ UPDATED — now imports URL-based dominant colour detector
+// ⭐ Enhanced colour + pattern detection
 import { detectDominantColorFromURL } from "./ColorDetection";
 
+// ⭐ Smart seasonal inference (colour + category + optionally fabric)
 import inferSeasonFromData from "./SeasonalSorter";
 
 export default function AddItemModal({
@@ -51,6 +48,9 @@ export default function AddItemModal({
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // -------------------------------------------------------------
+  // MAIN ADD FUNCTION
+  // -------------------------------------------------------------
   const handleAdd = async () => {
     if (!form.name || !form.image) return;
 
@@ -58,7 +58,7 @@ export default function AddItemModal({
       setIsUploading(true);
 
       // -------------------------------------------------------------
-      // 1. Upload image to Firebase Storage
+      // (1) Upload image → Firebase Storage
       // -------------------------------------------------------------
       const imgRef = ref(
         storage,
@@ -69,16 +69,27 @@ export default function AddItemModal({
       const imageUrl = await getDownloadURL(imgRef);
 
       // -------------------------------------------------------------
-      // 2. Detect dominant colour FROM URL instead of File
-      // ⭐ THIS IS THE FIX
+      // (2) Analyse the photo from the URL
+      // Detects:
+      // ✔ dominant colour
+      // ✔ shade (pastel, muted, dark)
+      // ✔ pattern (striped, floral, graphic, etc.)
       // -------------------------------------------------------------
-      const colorTag = await detectDominantColorFromURL(imageUrl);
-
-      // 3. Assign season based on category + colour
-      const seasonTag = inferSeasonFromData(form.category, colorTag);
+      const { colour: colorTag, pattern: patternTag } =
+        await detectDominantColorFromURL(imageUrl);
 
       // -------------------------------------------------------------
-      // 4. Save to Firestore
+      // (3) Season Prediction
+      // -------------------------------------------------------------
+      const seasonTag = inferSeasonFromData(
+        form.category,
+        colorTag,
+        patternTag,
+        form.fabric
+      );
+
+      // -------------------------------------------------------------
+      // (4) Save to Firestore
       // -------------------------------------------------------------
       await addDoc(collection(db, "users", currentUser.uid, "closet"), {
         name: form.name,
@@ -90,8 +101,12 @@ export default function AddItemModal({
         favorite: false,
         timesWorn: 0,
         lastWorn: null,
-        colorTag,       // ⭐ accurate now
+
+        // ⭐ NEW SMART TAGS
+        colorTag,
+        patternTag,
         seasonTag,
+
         createdAt: Timestamp.now(),
       });
 
@@ -103,6 +118,9 @@ export default function AddItemModal({
     }
   };
 
+  // -------------------------------------------------------------
+  // UI
+  // -------------------------------------------------------------
   return (
     <Modal show={show} onHide={closeModal} centered>
       <Modal.Header closeButton>
@@ -157,6 +175,7 @@ export default function AddItemModal({
           )}
         </Form.Group>
 
+        {/* FABRIC */}
         <Form.Group className="mb-3">
           <Form.Label>Fabric (optional)</Form.Label>
           <Form.Control
@@ -168,6 +187,7 @@ export default function AddItemModal({
           />
         </Form.Group>
 
+        {/* NOTES */}
         <Form.Group className="mb-3">
           <Form.Label>Notes (optional)</Form.Label>
           <Form.Control
@@ -180,6 +200,7 @@ export default function AddItemModal({
           />
         </Form.Group>
 
+        {/* PRICE */}
         <Form.Group className="mb-3">
           <Form.Label>Price (optional)</Form.Label>
           <Form.Control

@@ -1,7 +1,36 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Star, Clock } from "lucide-react";
+import { Heart, Trash2, Sparkles, Clock } from "lucide-react";
+import "../../styles/ItemCard.css";
 
+/* =========================================================
+   Human-friendly "time ago" converter
+========================================================= */
+function timeAgo(date) {
+  if (!date) return "Never";
+  const seconds = Math.floor((new Date() - date) / 1000);
+
+  if (seconds < 60) return "Just now";
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+
+  const years = Math.floor(months / 12);
+  return `${years}y ago`;
+}
+
+/* =========================================================
+   MAIN CARD COMPONENT
+========================================================= */
 export default function ItemCard({
   item,
   onImageClick,
@@ -11,125 +40,130 @@ export default function ItemCard({
 }) {
   const [flipped, setFlipped] = useState(false);
 
-  const handleFlip = () => {
-    setFlipped((prev) => !prev);
-  };
+  const lastWornDate =
+    item.lastWorn?.toDate?.() ?? (item.lastWorn ? new Date(item.lastWorn) : null);
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-      className="closet-item-card editorial-card polaroid relative"
-    >
-      {/* simple flip container */}
-      <div
-        className={`flip-card-inner ${flipped ? "is-flipped" : ""}`}
-        onClick={handleFlip}
+    <div className="flip-wrapper">
+
+      {/* HOTSPOTS MUST BE OUTSIDE flip-inner */}
+      {!flipped && (
+        <div
+          className="flip-hotspot-front"
+          onClick={() => setFlipped(true)}
+        />
+      )}
+
+      {flipped && (
+        <div
+          className="flip-hotspot-back"
+          onClick={() => setFlipped(false)}
+        />
+      )}
+
+      <motion.div
+        className={`flip-inner ${flipped ? "flipped" : ""}`}
+        transition={{ duration: 0.45 }}
       >
-        {/* FRONT */}
-        <div className="flip-card-front">
+
+        {/* ======================================================
+            FRONT — FULL IMAGE
+        ====================================================== */}
+        <div className="item-card-front full-image-front">
+
           <img
             src={item.image}
+            alt={item.name}
+            className="front-full-image no-flip"
             onClick={(e) => {
               e.stopPropagation();
-              if (onImageClick) onImageClick();
+              onImageClick();
             }}
-            className="cursor-pointer w-full h-[150px] object-cover rounded-lg transition-transform duration-300 md:hover:scale-110"
           />
 
-          <div className="flex justify-between items-center mt-2">
-            <div className="polaroid-label">{item.name}</div>
+          <div className="front-gradient"></div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs bg-thryftGreen text-white px-2 py-1 rounded-full">
-                {item.category}
-              </span>
+          <div className="front-category-badge">{item.category}</div>
+
+          <div className="front-item-name">{item.name}</div>
+        </div>
+
+        {/* ======================================================
+            BACK — METADATA
+        ====================================================== */}
+        <div className="item-card-back">
+
+          <div className="back-content no-flip">
+
+            <p className="back-title">{item.name}</p>
+
+            {/* Metadata */}
+            <div className="meta-block no-flip">
+              <div className="meta-row">
+                <span className="meta-label">Category</span>
+                <span className="meta-value">{item.category}</span>
+              </div>
+
+              <div className="meta-row">
+                <span className="meta-label">Colour Tag</span>
+                <span className="meta-value">{item.colorTag}</span>
+              </div>
+
+              <div className="meta-row">
+                <span className="meta-label">Season</span>
+                <span className="meta-value">{item.seasonTag}</span>
+              </div>
+
+              <div className="meta-row">
+                <span className="meta-label">Worn</span>
+                <span className="meta-value">{item.timesWorn || 0} times</span>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="action-row">
 
               <button
-                type="button"
+                className={`icon-btn no-flip ${item.favorite ? "active" : ""}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (onToggleFavorite) onToggleFavorite();
+                  onToggleFavorite(item);
                 }}
-                className={`favorite-btn ${
-                  item.favorite ? "is-favorite" : ""
-                }`}
-                aria-label={
-                  item.favorite
-                    ? "Remove from favourites"
-                    : "Add to favourites"
-                }
               >
-                <Star
-                  size={16}
-                  className="favorite-icon"
-                  fill={item.favorite ? "#facc15" : "none"}
-                />
+                <Heart size={26} />
               </button>
+
+              <button
+                className="icon-btn no-flip"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMarkWorn(item);
+                }}
+              >
+                <Sparkles size={26} />
+              </button>
+
+              <button
+                className="icon-btn delete no-flip"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(item);
+                }}
+              >
+                <Trash2 size={26} />
+              </button>
+
             </div>
+
+            <div className="worn-stats no-flip">
+              <Clock size={16} />
+              <span>{item.timesWorn || 0} wears</span>
+            </div>
+
           </div>
         </div>
 
-        {/* BACK */}
-        <div className="flip-card-back">
-          <div className="flex flex-col justify-between h-full">
-            <div>
-              <div className="text-xs uppercase tracking-[0.14em] text-gray-500 mb-1">
-                Wear Stats
-              </div>
-              <div className="text-sm font-semibold flex items-center gap-2 mb-2">
-                <Clock size={14} />
-                <span>
-                  Worn {item.timesWorn || 0}{" "}
-                  {item.timesWorn === 1 ? "time" : "times"}
-                </span>
-              </div>
-
-              {item.lastWorn && (
-                <div className="text-[0.7rem] text-gray-600 mb-2">
-                  Last worn:{" "}
-                  {item.lastWorn.toDate
-                    ? item.lastWorn.toDate().toLocaleDateString()
-                    : ""}
-                </div>
-              )}
-
-              <div className="text-[0.7rem] text-gray-600 mb-1">
-                Colour: <span className="font-medium">{item.colorTag}</span>
-              </div>
-              <div className="text-[0.7rem] text-gray-600">
-                Season: <span className="font-medium">{item.seasonTag}</span>
-              </div>
-            </div>
-
-            <div className="mt-3 flex flex-col gap-2">
-              <button
-                type="button"
-                className="w-full text-xs bg-thryftGreen text-white py-1.5 rounded-full"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onMarkWorn) onMarkWorn();
-                }}
-              >
-                Mark Worn Today
-              </button>
-
-              <button
-                type="button"
-                className="w-full text-xs text-red-500"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onDelete) onDelete();
-                }}
-              >
-                Delete Item
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }
